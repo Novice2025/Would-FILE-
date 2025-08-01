@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">DABY Method - Dominando o "Would"</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/tone"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        netflixDark: '#141414',
+                        netflixLight: '#222222',
+                        brandRed: '#c00000',
+                        brandYellow: '#ffc72c',
+                        brandBlue: '#1a439c',
+                        tgifRed: '#d52b1e',
+                        tkmaxxRed: '#ec1c24',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        pulseBg: {
+                            '0%, 100%': { opacity: '0.05' },
+                            '50%': { opacity: '0.1' },
+                        },
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '25%': { transform: 'translateX(-5px)' },
+                            '50%': { transform: 'translateX(5px)' },
+                            '75%': { transform: 'translateX(-5px)' }
+                        },
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 0.5s ease-out forwards',
+                        pulseBg: 'pulseBg 5s infinite ease-in-out',
+                        shake: 'shake 0.5s ease-in-out',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Inter', sans-serif;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #222; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s ease-out; }
+        .tab-btn.active { background-color: #ffc72c; color: #141414; }
+        .reveal-answer {
+            display: none;
+            background-color: #333;
+            border-left: 3px solid #ffc72c;
+        }
+        .correct { color: #10B981; }
+        .incorrect { color: #EF4444; }
+
+        .draggable-word {
+            cursor: grab;
+            user-select: none;
+        }
+        .draggable-word:active {
+            cursor: grabbing;
+        }
+        .drop-zone {
+            background-color: #333;
+            min-width: 80px;
+            min-height: 40px;
+            display: inline-block;
+            vertical-align: middle;
+            border-radius: 4px;
+            border: 2px dashed #444;
+            transition: all 0.2s ease-in-out;
+        }
+        .drop-zone.hovered {
+            border-color: #ffc72c;
+            background-color: #444;
+        }
+        .sentence-part {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 p-6 sm:p-10">
+
+    <div class="absolute inset-0 bg-brandRed opacity-5 animate-pulseBg pointer-events-none z-0"></div>
+
+    <div class="relative min-h-screen flex flex-col lg:flex-row z-10">
+        <aside class="w-full lg:w-1/6 bg-netflixLight bg-opacity-80 p-6 flex flex-col justify-center items-center lg:h-screen lg:sticky lg:top-0">
+            <h1 class="text-5xl lg:text-6xl font-extrabold text-white">DABY</h1>
+            <p class="text-xl lg:text-2xl text-brandYellow font-semibold">method</p>
+        </aside>
+
+        <main class="flex-1 p-6 md:p-10">
+            <header class="mb-8 flex justify-between items-start">
+                <div>
+                    <h2 class="text-3xl md:text-5xl font-bold text-brandYellow mb-2" data-i18n="mainTitle">Dominando o "Would"</h2>
+                    <p class="text-lg text-gray-400" data-i18n="subtitle">Um guia interativo para profissionais brasileiros.</p>
+                </div>
+                <button id="language-toggle" class="bg-brandRed hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors" data-lang="en">EN</button>
+            </header>
+
+            <div id="tabs-container" class="w-full">
+                <div class="flex flex-wrap border-b border-gray-700 mb-6">
+                    <button class="tab-btn text-sm md:text-base font-semibold py-3 px-4 text-gray-400 hover:text-white transition-colors duration-300" data-tab="requests" data-i18n="tabRequests">Pedidos e Ofertas</button>
+                    <button class="tab-btn text-sm md:text-base font-semibold py-3 px-4 text-gray-400 hover:text-white transition-colors duration-300" data-tab="imaginary" data-i18n="tabImaginary">Situações Imaginárias</button>
+                    <button class="tab-btn text-sm md:text-base font-semibold py-3 px-4 text-gray-400 hover:text-white transition-colors duration-300" data-tab="past" data-i18n="tabPast">Ações no Passado</button>
+                    <button class="tab-btn text-sm md:text-base font-semibold py-3 px-4 text-gray-400 hover:text-white transition-colors duration-300" data-tab="reported" data-i18n="tabReported">Discurso Indireto</button>
+                    <button class="tab-btn text-sm md:text-base font-semibold py-3 px-4 text-gray-400 hover:text-white transition-colors duration-300" data-tab="wishes" data-i18n="tabWishes">Desejos e Preferências</button>
+                    <button class="tab-btn text-sm md:text-base font-semibold py-3 px-4 text-gray-400 hover:text-white transition-colors duration-300" data-tab="reorder-exercise" data-i18n="tabReorder">Exercício de Reordenar</button>
+                </div>
+
+                <div id="requests" class="tab-content">
+                    <h3 class="text-2xl font-bold text-brandRed mb-4" data-i18n="reqTitle">1. Pedidos, Ofertas e Convites (Polite Requests)</h3>
+                    <p class="mb-6 text-gray-300" data-i18n="reqIntro">"Would" é a forma mais educada e profissional para fazer pedidos, ofertas ou convites.</p>
+
+                    <p class="bg-brandYellow text-netflixDark font-bold p-2 rounded-lg my-4" data-i18n="reqFormula">Comece a pergunta com `would you...`, é uma fórmula.</p>
+
+                    <div class="space-y-4">
+                        <div class="bg-netflixLight p-4 rounded-lg">
+                            <p class="font-bold text-brandYellow" data-i18n="reqEx1title">Situação: Oferecer algo a um convidado (Pedir algo para alguém com educação).</p>
+                            <p class="mt-2 text-gray-300" data-i18n="reqEx1text">O maior erro dos brasileiros é usar `{WANT}`. Isso é muito inadequado, dependendo de com quem você está falando.</p>
+                            <p class="mt-4 text-gray-300" data-i18n="reqEx1text2">Em vez de "O que você quer beber?", use:</p>
+                            <p class="mt-2 text-gray-300" data-i18n="reqEx1text3">De uma maneira educada, use `Would you like...`. Você tem duas opções educadas:</p>
+                            <ul class="list-disc list-inside ml-4 mt-2 font-mono text-white">
+                                <li>👉 `Would you like something to drink?`</li>
+                                <li>👉 `What would you have?`</li>
+                            </ul>
+                            <p class="mt-4 text-gray-300" data-i18n="reqEx1text4">A resposta correta é neste formato: `{I will have (coke = coca-cola), a piece of cake, etc}`</p>
+                        </div>
+                        <div class="bg-netflixLight p-4 rounded-lg">
+                            <p class="font-bold text-brandYellow" data-i18n="reqEx2title">Situação: Pedir um favor.</p>
+                            <p class="mt-2 text-gray-300" data-i18n="reqEx2text">Para pedir a alguém para fechar a janela, diga:</p>
+                            <p class="mt-1 font-mono text-white">👉 `Would you mind closing the window?`</p>
+                        </div>
+                        <div class="bg-netflixLight p-4 rounded-lg">
+                            <p class="font-bold text-brandYellow" data-i18n="reqEx3title">Situação: Fazer um pedido em um restaurante.</p>
+                            <p class="mt-2 text-gray-300" data-i18n="reqEx3text1">O garçom pergunta: 👉 `What would you like, sir?`</p>
+                            <p class="mt-2 text-gray-300" data-i18n="reqEx3text2">Sua resposta: 👉 `I would like the steak.` ou 👉 `I'll have the steak.`</p>
+                        </div>
+                         <div class="bg-netflixLight p-4 rounded-lg">
+                            <p class="font-bold text-brandYellow" data-i18n="reqFixedExpTitle">`Excuse me would you have...` como uma expressão fixa</p>
+                            <p class="mt-2 text-gray-300" data-i18n="reqFixedExpText">Esta é uma expressão educada e fixa para pedir algo em ambientes como restaurantes ou eventos formais.</p>
+                             <ul class="list-disc list-inside ml-4 mt-2 font-mono text-white space-y-2">
+                                <li>👉 `Excuse me, would you have the time?`</li>
+                                <li>👉 `Excuse me, would you have a fork?`</li>
+                                <li>👉 `Excuse me, would you have a moment?`</li>
+                                <li>👉 `Excuse me, would you have a menu?`</li>
+                                <li>👉 `Excuse me, would you have a glass of water?`</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-md mt-4">
+                            <h4 class="text-xl font-bold text-yellow-400 mb-4" data-i18n="reqInteractiveTitle">Exercício Interativo (Preencha as Lacunas)</h4>
+                            <p class="text-gray-300 mb-6" data-i18n="reqInteractiveIntro">Preencha as lacunas para formar uma pergunta educada usando "Would you have...".</p>
+                            <div id="request-exercise-container" class="space-y-4">
+                                <!-- Questions will be dynamically added here -->
+                            </div>
+                        </div>
+
+                        <!-- NEW DRAG AND DROP EXERCISE -->
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-md mt-8">
+                            <h4 class="text-xl font-bold text-yellow-400 mb-4" data-i18n="dragDropTitle">Exercício de Arrastar e Soltar</h4>
+                            <p class="text-gray-300 mb-6" data-i18n="dragDropIntro">Arraste a palavra correta para completar a frase com "would".</p>
+                            <div id="drag-drop-exercise-container" class="space-y-6">
+                                <!-- Drag and drop questions will be dynamically added here -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div id="imaginary" class="tab-content">
+                    <h3 class="text-2xl font-bold text-brandBlue mb-4" data-i18n="imgTitle">2. Situações Imaginárias (Unreal Conditionals)</h3>
+                    <p class="mb-6 text-gray-300" data-i18n="imgIntro">Usamos "would" para descrever o resultado de uma situação hipotética ou irreal. Em português, equivale ao nosso futuro do pretérito (faria, compraria, iria).</p>
+
+                    <div class="bg-netflixLight p-4 rounded-lg">
+                        <p class="font-bold text-brandYellow" data-i18n="imgEx1title">Estrutura Comum (Second Conditional)</p>
+                        <p class="mt-2 text-gray-300" data-i18n="imgEx1text1">A frase é dividida em duas partes: a condição (com "if") e o resultado (com "would").</p>
+                        <p class="mt-2 font-mono text-white">`If + Simple Past, ... would + Verb (infinitive)`</p>
+                        <p class="mt-4 font-bold text-brandYellow" data-i18n="examples">Exemplos:</p>
+                        <p class="mt-2 font-mono text-white">`If I had more money, I would buy a new car.`</p>
+                        <p class="text-sm text-gray-400 font-sans" data-i18n="imgEx1text2">(Se eu tivesse mais dinheiro, eu compraria um carro novo.)</p>
+                        <p class="mt-2 font-mono text-white">`I would travel the world if I won the lottery.`</p>
+                        <p class="text-sm text-gray-400 font-sans" data-i18n="imgEx1text3">(Eu viajaria pelo mundo se ganhasse na loteria.)</p>
+                    </div>
+                     <div class="bg-netflixLight p-4 rounded-lg mt-4">
+                        <p class="font-bold text-brandYellow" data-i18n="imgQuizTitle">Exercício Interativo</p>
+                        <p class="mt-2 text-gray-300" data-i18n="imgQuizText">O que você faria se pudesse ter qualquer superpoder?</p>
+                        <button class="reveal-btn mt-2 bg-brandBlue hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors" data-i18n="revealBtn">Clique para ver um exemplo</button>
+                        <p class="reveal-answer mt-2 p-3 rounded-md">`If I could fly, I would visit a new country every day.`</p>
+                    </div>
+                </div>
+
+                <div id="past" class="tab-content">
+                    <h3 class="text-2xl font-bold text-tgifRed mb-4" data-i18n="pastTitle">3. Ações Repetidas no Passado (Past Habits)</h3>
+                    <p class="mb-6 text-gray-300" data-i18n="pastIntro">"Would" pode ser usado para descrever hábitos ou ações que se repetiam no passado, mas que não ocorrem mais. É uma alternativa mais formal para "used to" e é muito comum em narrativas e histórias.</p>
+                    <div class="bg-netflixLight p-4 rounded-lg">
+                        <p class="font-bold text-brandYellow" data-i18n="important">Importante:</p>
+                        <p class="mt-2 text-gray-300" data-i18n="pastEx1text1">Não usamos "would" para falar de "estados" passados (ex: morar, ser, ter). Para isso, use "used to".</p>
+                        <p class="mt-4 font-bold text-brandYellow" data-i18n="examples">Exemplos:</p>
+                        <p class="mt-2 font-mono text-white">`When I was a child, my grandfather would tell me stories every night.`</p>
+                        <p class="text-sm text-gray-400 font-sans" data-i18n="pastEx1text2">(Quando eu era criança, meu avô me contava histórias toda noite.)</p>
+                        <p class="mt-2 font-mono text-white">`Every summer, we would go to the beach.`</p>
+                        <p class="text-sm text-gray-400 font-sans" data-i18n="pastEx1text3">(Todo verão, nós íamos para a praia.)</p>
+                    </div>
+                </div>
+
+                <div id="reported" class="tab-content">
+                    <h3 class="text-2xl font-bold text-tkmaxxRed mb-4" data-i18n="repTitle">4. Discurso Indireto (Reported Speech)</h3>
+                    <p class="mb-6 text-gray-300" data-i18n="repIntro">Quando reportamos o que alguém disse, "will" no discurso direto se transforma em "would" no discurso indireto. Basicamente, "would" é o "passado" de "will".</p>
+                    <div class="bg-netflixLight p-4 rounded-lg">
+                         <p class="font-bold text-brandYellow" data-i18n="examples">Exemplo:</p>
+                        <p class="mt-2 text-gray-300" data-i18n="repEx1text1">Discurso Direto: He said, "I **will** call you tomorrow."</p>
+                        <p class="mt-2 text-gray-300" data-i18n="repEx1text2">Discurso Indireto: He said that he **would** call me the next day.</p>
+                        <p class="mt-4 text-gray-300" data-i18n="repEx2text1">Discurso Direto: She said, "The team **will not** win."</p>
+                        <p class="mt-2 text-gray-300" data-i18n="repEx2text2">Discurso Indireto: She said the team **would not** win.</p>
+                    </div>
+                </div>
+
+                <div id="wishes" class="tab-content">
+                    <h3 class="text-2xl font-bold text-brandYellow mb-4" data-i18n="wishesTitle">5. Desejos e Preferências (Wishes & Preferences)</h3>
+                    <p class="mb-6 text-gray-300" data-i18n="wishesIntro">"Would" é frequentemente usado para expressar desejos sobre o presente ou futuro, e para indicar preferências, especialmente com "rather" ou "sooner".</p>
+                     <div class="space-y-4">
+                        <div class="bg-netflixLight p-4 rounded-lg">
+                            <p class="font-bold text-brandYellow" data-i18n="wishesEx1title">Expressando um Desejo (com "wish")</p>
+                            <p class="mt-2 text-gray-300" data-i18n="wishesEx1text1">Usado para falar sobre algo que gostaríamos que acontecesse ou que alguém fizesse.</p>
+                            <p class="mt-1 font-mono text-white">`I wish you would stop making that noise.`</p>
+                            <p class="text-sm text-gray-400 font-sans" data-i18n="wishesEx1text2">(Eu gostaria que você parasse de fazer esse barulho.)</p>
+                        </div>
+                        <div class="bg-netflixLight p-4 rounded-lg">
+                            <p class="font-bold text-brandYellow" data-i18n="wishesEx2title">Expressando Preferência (com "would rather")</p>
+                             <p class="mt-2 text-gray-300" data-i18n="wishesEx2text1">Indica uma escolha clara entre duas ou mais opções.</p>
+                            <p class="mt-1 font-mono text-white">`I would rather stay home than go to the party.`</p>
+                            <p class="text-sm text-gray-400 font-sans" data-i18n="wishesEx2text2">(Eu preferiria ficar em casa a ir para a festa.)</p>
+                             <p class="mt-2 font-mono text-white">`She would sooner quit her job than apologize.`</p>
+                            <p class="text-sm text-gray-400 font-sans" data-i18n="wishesEx2text3">(Ela preferiria pedir demissão a pedir desculpas.)</p>
+                        </div>
+                    </div>
+                </div>
+
+                 <div id="reorder-exercise" class="tab-content">
+                    <div class="max-w-4xl mx-auto p-6 sm:p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl sm:text-4xl font-bold text-yellow-400 mb-4 text-center" data-i18n="reorderTitle">Reordene as Palavras: Exercício com "Would"</h3>
+                        <p class="text-gray-400 text-center mb-8" data-i18n="reorderIntro">Reorganize as palavras embaralhadas para formar uma frase correta. Digite sua resposta na caixa abaixo de cada pergunta.</p>
+
+                        <div id="reorder-exercise-container" class="space-y-6">
+                            <!-- Questions will be dynamically added here -->
+                        </div>
+
+                        <div class="mt-10 flex justify-center">
+                            <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow transition-colors" data-i18n="reorderResetBtn">
+                                Reiniciar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <footer class="text-center text-gray-500 py-10 mt-10">
+                <p data-i18n="footer">&copy; 2025 Método DABY. Todos os direitos reservados.</p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        const texts = {
+            pt: {
+                title: 'DABY Method - Dominando o "Would"',
+                mainTitle: 'Dominando o "Would"',
+                subtitle: 'Um guia interativo para profissionais brasileiros.',
+                tabRequests: 'Pedidos e Ofertas',
+                tabImaginary: 'Situações Imaginárias',
+                tabPast: 'Ações no Passado',
+                tabReported: 'Discurso Indireto',
+                tabWishes: 'Desejos e Preferências',
+                tabReorder: 'Exercício de Reordenar',
+                reqTitle: '1. Pedidos, Ofertas e Convites (Polite Requests)',
+                reqIntro: '"Would" é a forma mais educada e profissional para fazer pedidos, ofertas ou convites.',
+                reqFormula: 'Comece a pergunta com `would you...`, é uma fórmula.',
+                reqEx1title: 'Situação: Oferecer algo a um convidado (Pedir algo para alguém com educação).',
+                reqEx1text: 'O maior erro dos brasileiros é usar `{WANT}`. Isso é muito inadequado, dependendo de com quem você está falando.',
+                reqEx1text2: 'Em vez de "O que você quer beber?", use:',
+                reqEx1text3: 'De uma maneira educada, use `Would you like...`. Você tem duas opções educadas:',
+                reqEx1text4: 'A resposta correta é neste formato: `{I will have (coke = coca-cola), a piece of cake, etc}`',
+                reqEx2title: 'Situação: Pedir um favor.',
+                reqEx2text: 'Para pedir a alguém para fechar a janela, diga:',
+                reqEx3title: 'Situação: Fazer um pedido em um restaurante.',
+                reqEx3text1: 'O garçom pergunta: 👉 `What would you like, sir?`',
+                reqEx3text2: 'Sua resposta: 👉 `I would like the steak.` ou 👉 `I\'ll have the steak.`',
+                reqFixedExpTitle: '`Excuse me would you have...` como uma expressão fixa',
+                reqFixedExpText: 'Esta é uma expressão educada e fixa para pedir algo em ambientes como restaurantes ou eventos formais.',
+                reqInteractiveTitle: 'Exercício Interativo (Preencha as Lacunas)',
+                reqInteractiveIntro: 'Preencha as lacunas para formar uma pergunta educada usando "Would you have...".',
+                reqQuestion1: 'Você está em um evento de networking e precisa saber a hora. O que você pergunta a um desconhecido?',
+                reqQuestion2: 'Você está em um jantar formal e percebe que está faltando um garfo. O que você pergunta ao garçom?',
+                reqQuestion3: 'Você está em uma reunião de negócios e quer saber se alguém tem um momento para uma rápida conversa. O que você pergunta?',
+                reqQuestion4: 'Você está em um avião e quer pedir uma água, mas está sem o botão de chamada. O que você diz para a aeromoça que está passando?',
+                reqQuestion5: 'Você está em um restaurante e está indeciso sobre qual vinho escolher, então pede a opinião do sommelier. Como você pergunta?',
+                dragDropTitle: 'Exercício de Arrastar e Soltar',
+                dragDropIntro: 'Arraste a palavra correta para completar a frase com "would".',
+                dragDropWords: 'Palavras:',
+                dragDropCheckBtn: 'Verificar',
+                dragDropResetBtn: 'Reiniciar',
+                imgTitle: '2. Situações Imaginárias (Unreal Conditionals)',
+                imgIntro: 'Usamos "would" para descrever o resultado de uma situação hipotética ou irreal. Em português, equivale ao nosso futuro do pretérito (faria, compraria, iria).',
+                imgEx1title: 'Estrutura Comum (Second Conditional)',
+                imgEx1text1: 'A frase é dividida em duas partes: a condição (com "if") e o resultado (com "would").',
+                examples: 'Exemplos:',
+                imgEx1text2: '(Se eu tivesse mais dinheiro, eu compraria um carro novo.)',
+                imgEx1text3: '(Eu viajaria pelo mundo se ganhasse na loteria.)',
+                imgQuizTitle: 'Exercício Interativo',
+                imgQuizText: 'O que você faria se pudesse ter qualquer superpoder?',
+                revealBtn: 'Clique para ver um exemplo',
+                pastTitle: '3. Ações Repetidas no Passado (Past Habits)',
+                pastIntro: '"Would" pode ser usado para descrever hábitos ou ações que se repetiam no passado, mas que não ocorrem mais. É uma alternativa mais formal para "used to" e é muito comum em narrativas e histórias.',
+                important: 'Importante:',
+                pastEx1text1: 'Não usamos "would" para falar de "estados" passados (ex: morar, ser, ter). Para isso, use "used to".',
+                pastEx1text2: '(Quando eu era criança, meu avô me contava histórias toda noite.)',
+                pastEx1text3: '(Todo verão, nós íamos para a praia.)',
+                repTitle: '4. Discurso Indireto (Reported Speech)',
+                repIntro: 'Quando reportamos o que alguém disse, "will" no discurso direto se transforma em "would" no discurso indireto. Basicamente, "would" é o "passado" de "will".',
+                repEx1text1: 'Discurso Direto: He said, "I **will** call you tomorrow."',
+                repEx1text2: 'Discurso Indireto: He said that he **would** call me the next day.',
+                repEx2text1: 'Discurso Direto: She said, "The team **will not** win."',
+                repEx2text2: 'Discurso Indireto: She said the team **would not** win.',
+                wishesTitle: '5. Desejos e Preferências (Wishes & Preferences)',
+                wishesIntro: '"Would" é frequentemente usado para expressar desejos sobre o presente ou futuro, e para indicar preferências, especialmente com "rather" ou "sooner".',
+                wishesEx1title: 'Expressando um Desejo (com "wish")',
+                wishesEx1text1: 'Usado para falar sobre algo que gostaríamos que acontecesse ou que alguém fizesse.',
+                wishesEx1text2: '(Eu gostaria que você parasse de fazer esse barulho.)',
+                wishesEx2title: 'Expressando Preferência (com "would rather")',
+                wishesEx2text1: 'Indica uma escolha clara entre duas ou mais opções.',
+                wishesEx2text2: '(Eu preferiria ficar em casa a ir para a festa.)',
+                wishesEx2text3: '(Ela preferiria pedir demissão a pedir desculpas.)',
+                reorderTitle: 'Reordene as Palavras: Exercício com "Would"',
+                reorderIntro: 'Reorganize as palavras embaralhadas para formar uma frase correta. Digite sua resposta na caixa abaixo de cada pergunta.',
+                reorderResetBtn: 'Reiniciar',
+                checkSingleAnswerBtn: 'Verificar',
+                reorderScrambled: 'Embaralhado:',
+                reorderPlaceholder: 'Digite sua resposta aqui...',
+                reorderCorrect: 'Correto!',
+                reorderIncorrect: 'Incorreto. A resposta correta é:',
+                footer: '&copy; 2025 Método DABY. Todos os direitos reservados.'
+            },
+            en: {
+                title: 'DABY Method - Mastering "Would"',
+                mainTitle: 'Mastering "Would"',
+                subtitle: 'An interactive guide for Brazilian professionals.',
+                tabRequests: 'Polite Requests and Offers',
+                tabImaginary: 'Imaginary Situations',
+                tabPast: 'Repeated Past Actions',
+                tabReported: 'Reported Speech',
+                tabWishes: 'Wishes and Preferences',
+                tabReorder: 'Reorder Exercise',
+                reqTitle: '1. Polite Requests, Offers, and Invitations',
+                reqIntro: '"Would" is the most polite and professional way to make requests, offers, or invitations.',
+                reqFormula: 'Start the question with `would you...`, it\'s a formula.',
+                reqEx1title: 'Situation: Offering something to a guest.',
+                reqEx1text: 'The biggest mistake of Brazilians is to use `{WANT}`. This is very inadequate, depending on who you are speaking to.',
+                reqEx1text2: 'Instead of "What do you want to drink?", use:',
+                reqEx1text3: 'In a polite way, use `Would you like...`. You have two polite options:',
+                reqEx1text4: 'The correct answer is in this format: `{I will have (coke = coca-cola), a piece of cake, etc}`',
+                reqEx2title: 'Situation: Asking for a favor.',
+                reqEx2text: 'To ask someone to close the window, say:',
+                reqEx3title: 'Situation: Ordering at a restaurant.',
+                reqEx3text1: 'The waiter asks: 👉 `What would you like, sir?`',
+                reqEx3text2: 'Your answer: 👉 `I would like the steak.` or 👉 `I\'ll have the steak.`',
+                reqFixedExpTitle: '`Excuse me would you have...` as a fixed expression',
+                reqFixedExpText: 'This is a polite and fixed expression to ask for something in settings like restaurants or formal events.',
+                reqInteractiveTitle: 'Interactive Exercise (Fill in the Blanks)',
+                reqInteractiveIntro: 'Fill in the blanks to form a polite question using "Would you have...".',
+                reqQuestion1: 'You are at a networking event and need to know the time. What do you ask a stranger?',
+                reqQuestion2: 'You are at a formal dinner and notice you are missing a fork. What do you ask the waiter?',
+                reqQuestion3: 'You are in a business meeting and want to know if someone has a moment for a quick chat. What do you ask?',
+                reqQuestion4: 'You are on a plane and want to ask for water, but don\'t have the call button. What do you say to the passing flight attendant?',
+                reqQuestion5: 'You are at a restaurant and are undecided about which wine to choose, so you ask for the sommelier\'s opinion. How do you ask?',
+                dragDropTitle: 'Drag and Drop Exercise',
+                dragDropIntro: 'Drag the correct word to complete the sentence with "would".',
+                dragDropWords: 'Words:',
+                dragDropCheckBtn: 'Check',
+                dragDropResetBtn: 'Reset',
+                imgTitle: '2. Imaginary Situations (Unreal Conditionals)',
+                imgIntro: 'We use "would" to describe the result of a hypothetical or unreal situation. In Portuguese, this is equivalent to the conditional tense (faria, compraria, iria).',
+                imgEx1title: 'Common Structure (Second Conditional)',
+                imgEx1text1: 'The sentence is divided into two parts: the condition (with "if") and the result (with "would").',
+                examples: 'Examples:',
+                imgEx1text2: '(If I had more money, I would buy a new car.)',
+                imgEx1text3: '(I would travel the world if I won the lottery.)',
+                imgQuizTitle: 'Interactive Exercise',
+                imgQuizText: 'What would you do if you could have any superpower?',
+                revealBtn: 'Click to reveal the answer',
+                pastTitle: '3. Repeated Past Actions (Past Habits)',
+                pastIntro: '"Would" can be used to describe habits or actions that were repeated in the past but no longer occur. It is a more formal alternative to "used to" and is very common in narratives and stories.',
+                important: 'Important:',
+                pastEx1text1: 'We do not use "would" to talk about past "states" (e.g., to live, to be, to have). For that, use "used to".',
+                pastEx1text2: '(When I was a child, my grandfather would tell me stories every night.)',
+                pastEx1text3: '(Every summer, we would go to the beach.)',
+                repTitle: '4. Reported Speech',
+                repIntro: 'When we report what someone said, "will" in direct speech becomes "would" in reported speech. Basically, "would" is the "past" of "will".',
+                repEx1text1: 'Direct Speech: He said, "I **will** call you tomorrow."',
+                repEx1text2: 'Reported Speech: He said that he **would** call me the next day.',
+                repEx2text1: 'Direct Speech: She said, "The team **will not** win."',
+                repEx2text2: 'Reported Speech: She said the team **would not** win.',
+                wishesTitle: '5. Desejos e Preferências (Wishes & Preferences)',
+                wishesIntro: '"Would" is frequently used to express wishes about the present or future, and to indicate preferences, especially with "rather" or "sooner".',
+                wishesEx1title: 'Expressing a Wish (with "wish")',
+                wishesEx1text1: 'Used to talk about something we would like to happen or for someone to do.',
+                wishesEx1text2: '(I wish you would stop making that noise.)',
+                wishesEx2title: 'Expressing a Preference (with "would rather")',
+                wishesEx2text1: 'Indicates a clear choice between two or more options.',
+                wishesEx2text2: '(I would rather stay home than go to the party.)',
+                wishesEx2text3: '(She would sooner quit her job than apologize.)',
+                reorderTitle: 'Reorder the Words: "Would" Exercise',
+                reorderIntro: 'Rearrange the scrambled words to form a correct sentence. Type your answer in the box below each question.',
+                reorderResetBtn: 'Reset',
+                checkSingleAnswerBtn: 'Check',
+                reorderScrambled: 'Scrambled:',
+                reorderPlaceholder: 'Type your answer here...',
+                reorderCorrect: 'Correct!',
+                reorderIncorrect: 'Incorrect. The correct answer is:',
+                footer: '&copy; 2025 Método DABY. Todos os direitos reservados.'
+            }
+        };
+
+        let currentLang = 'pt';
+
+        const updateLanguage = (lang) => {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (texts[lang][key]) {
+                    el.textContent = texts[lang][key];
+                }
+            });
+            document.querySelector('#language-toggle').textContent = lang === 'pt' ? 'EN' : 'PT';
+            document.querySelector('#language-toggle').dataset.lang = lang === 'pt' ? 'en' : 'pt';
+            document.documentElement.lang = lang;
+            
+            // Special handling for placeholder text as it's not a standard text node
+            document.querySelectorAll('input[placeholder]').forEach(input => {
+                input.placeholder = texts[lang]['reorderPlaceholder'];
+            });
+        };
+        
+        const tabs = document.querySelectorAll('.tab-btn');
+        const contents = document.querySelectorAll('.tab-content');
+
+        const switchTab = (tabName) => {
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`[data-tab='${tabName}']`).classList.add('active');
+            
+            if (tabName === 'reorder-exercise') {
+                renderReorderExercise();
+            } else if (tabName === 'requests') {
+                 renderRequestExercise();
+                 renderDragAndDropExercise();
+            }
+        };
+        
+        const reorderQuestions = [
+            { scrambled: "closing the you mind for me? Would window", answer: "Would you mind closing the window for me?" },
+            { scrambled: "coffee you like some Would or tea?", answer: "Would you like some coffee or tea?" },
+            { scrambled: "I a world. money, would lot the of travel If had", answer: "If I had a lot of money, I would travel the world." },
+            { scrambled: "he for said dinner us. He would cook", answer: "He said he would cook dinner for us." },
+            { scrambled: "Every go to beach. the would we summer,", answer: "Every summer, we would go to the beach." },
+            { scrambled: "for join dinner? us Would you to like", answer: "Would you like to join us for dinner?" },
+            { scrambled: "What have you to like would for dinner?", answer: "What would you like to have for dinner?" },
+            { scrambled: "know nearest is? you the Would bank where", answer: "Would you know where the nearest bank is?" },
+            { scrambled: "with me you please this box? Would help", answer: "Would you please help me with this box?" },
+            { scrambled: "a rather tea? coffee or Would you have a", answer: "Would you rather have a coffee or a tea?" }
+        ];
+
+        const requestQuestions = [
+            {
+                prompt: 'reqQuestion1',
+                answer: 'Excuse me, would you have the time?'
+            },
+            {
+                prompt: 'reqQuestion2',
+                answer: 'Excuse me, would you have a fork?'
+            },
+            {
+                prompt: 'reqQuestion3',
+                answer: 'Would you have a moment?'
+            },
+            {
+                prompt: 'reqQuestion4',
+                answer: 'Excuse me, would you have a glass of water?'
+            },
+            {
+                prompt: 'reqQuestion5',
+                answer: 'Would you have a recommendation for a wine?'
+            }
+        ];
+        
+        const dragDropQuestions = [
+            {
+                id: 'dd-1',
+                sentenceParts: ['Would', 'you', 'like', '___', 'to', 'do', 'you', 'a', 'favour?'],
+                draggableWords: ['me'],
+                correctSentence: 'Would you like me to do you a favour?',
+            },
+            {
+                id: 'dd-2',
+                sentenceParts: ['Would', 'you', 'mind', '___', 'the', 'window?'],
+                draggableWords: ['closing'],
+                correctSentence: 'Would you mind closing the window?',
+            },
+            {
+                id: 'dd-3',
+                sentenceParts: ['What', '___', 'you', 'like', 'for', 'dinner?'],
+                draggableWords: ['would'],
+                correctSentence: 'What would you like for dinner?',
+            },
+            {
+                id: 'dd-4',
+                sentenceParts: ['Would', 'you', 'like', '___', 'something', 'to', 'drink?'],
+                draggableWords: ['me'],
+                correctSentence: 'Would you like me to get you something to drink?',
+                
+            }
+        ];
+        dragDropQuestions[3].draggableWords = ['me'];
+        dragDropQuestions[3].correctSentence = 'Would you like me to get you something to drink?';
+        dragDropQuestions[3].sentenceParts = ['Would', 'you', 'like', 'me', 'to', 'get', 'you', 'something', 'to', 'drink?'];
+        // Re-adjust the drag and drop questions to be simpler and easier to manage.
+        const simplerDragDropQuestions = [
+            {
+                id: 'dd-1',
+                sentenceParts: ['Would you like', '___', 'to do you a favour?'],
+                draggableWords: ['me'],
+                correctSentence: 'Would you like me to do you a favour?',
+            },
+            {
+                id: 'dd-2',
+                sentenceParts: ['Would you mind', '___', 'the window?'],
+                draggableWords: ['closing'],
+                correctSentence: 'Would you mind closing the window?',
+            },
+            {
+                id: 'dd-3',
+                sentenceParts: ['What', '___', 'you have for dinner?'],
+                draggableWords: ['would'],
+                correctSentence: 'What would you have for dinner?',
+            },
+            {
+                id: 'dd-4',
+                sentenceParts: ['I', '___', 'rather stay home than go to the party.'],
+                draggableWords: ['would'],
+                correctSentence: 'I would rather stay home than go to the party.'
+            }
+        ];
+
+
+        const renderReorderExercise = () => {
+            const container = document.getElementById('reorder-exercise-container');
+            if (!container) return;
+            container.innerHTML = '';
+            reorderQuestions.forEach((q, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = "bg-gray-700 p-4 rounded-lg shadow-md";
+                questionElement.innerHTML = `
+                    <p class="text-sm font-mono text-gray-400 mb-2" data-i18n="reorderScrambled">${texts[currentLang]['reorderScrambled']}</p>
+                    <p class="text-lg font-semibold text-white mb-4">${q.scrambled}</p>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="q-${index}" class="flex-1 bg-gray-900 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="${texts[currentLang]['reorderPlaceholder']}">
+                        <button class="check-reorder-single-btn bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded-lg shadow transition-colors" data-index="${index}">${texts[currentLang]['checkSingleAnswerBtn']}</button>
+                    </div>
+                    <p id="feedback-${index}" class="mt-2 text-sm font-medium"></p>
+                `;
+                container.appendChild(questionElement);
+            });
+        };
+
+        const renderRequestExercise = () => {
+            const container = document.getElementById('request-exercise-container');
+            if (!container) return;
+            container.innerHTML = '';
+            requestQuestions.forEach((q, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = "bg-netflixLight p-4 rounded-lg";
+                questionElement.innerHTML = `
+                    <p class="font-bold text-brandYellow" data-i18n="${q.prompt}">${texts[currentLang][q.prompt]}</p>
+                    <div class="flex items-center space-x-2 mt-2">
+                        <input type="text" id="req-q-${index}" class="flex-1 bg-gray-900 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="${texts[currentLang]['reorderPlaceholder']}">
+                        <button class="check-request-single-btn bg-brandRed hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors" data-index="${index}">${texts[currentLang]['checkSingleAnswerBtn']}</button>
+                    </div>
+                    <p id="req-feedback-${index}" class="mt-2 text-sm font-medium"></p>
+                `;
+                container.appendChild(questionElement);
+            });
+        };
+        
+        const renderDragAndDropExercise = () => {
+            const container = document.getElementById('drag-drop-exercise-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            simplerDragDropQuestions.forEach((q, index) => {
+                const exerciseItem = document.createElement('div');
+                exerciseItem.className = 'bg-netflixLight p-4 rounded-lg';
+
+                const sentenceContainer = document.createElement('div');
+                sentenceContainer.className = 'text-lg text-white mb-4 flex flex-wrap items-center space-x-1';
+                q.sentenceParts.forEach(part => {
+                    if (part === '___') {
+                        const dropZone = document.createElement('span');
+                        dropZone.id = `drop-zone-${index}`;
+                        dropZone.className = 'drop-zone';
+                        dropZone.addEventListener('dragover', (e) => {
+                            e.preventDefault();
+                            dropZone.classList.add('hovered');
+                        });
+                        dropZone.addEventListener('dragleave', () => {
+                            dropZone.classList.remove('hovered');
+                        });
+                        dropZone.addEventListener('drop', (e) => {
+                            e.preventDefault();
+                            dropZone.classList.remove('hovered');
+                            if (dropZone.children.length === 0) {
+                                const wordId = e.dataTransfer.getData('text/plain');
+                                const word = document.getElementById(wordId);
+                                if (word) {
+                                    dropZone.appendChild(word);
+                                    word.classList.remove('bg-gray-600', 'hover:bg-gray-500');
+                                    word.classList.add('bg-yellow-400', 'text-gray-900');
+                                }
+                            }
+                        });
+                        sentenceContainer.appendChild(dropZone);
+                    } else {
+                        const sentencePart = document.createElement('span');
+                        sentencePart.textContent = part;
+                        sentencePart.className = 'sentence-part';
+                        sentenceContainer.appendChild(sentencePart);
+                    }
+                });
+
+                const wordsContainer = document.createElement('div');
+                wordsContainer.className = 'flex flex-wrap gap-2 mb-4';
+                q.draggableWords.forEach(wordText => {
+                    const word = document.createElement('span');
+                    word.textContent = wordText;
+                    word.id = `word-${index}-${wordText}`;
+                    word.className = 'draggable-word bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors';
+                    word.draggable = true;
+                    word.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', word.id);
+                    });
+                    wordsContainer.appendChild(word);
+                });
+
+                const checkButton = document.createElement('button');
+                checkButton.textContent = texts[currentLang]['dragDropCheckBtn'];
+                checkButton.className = 'drag-drop-check-btn bg-brandRed hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors';
+                checkButton.dataset.index = index;
+
+                const resetButton = document.createElement('button');
+                resetButton.textContent = texts[currentLang]['dragDropResetBtn'];
+                resetButton.className = 'drag-drop-reset-btn ml-2 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors';
+                resetButton.dataset.index = index;
+
+                const feedback = document.createElement('p');
+                feedback.id = `drag-drop-feedback-${index}`;
+                feedback.className = 'mt-2 text-sm font-medium';
+
+                exerciseItem.appendChild(sentenceContainer);
+                exerciseItem.appendChild(wordsContainer);
+                exerciseItem.appendChild(checkButton);
+                exerciseItem.appendChild(resetButton);
+                exerciseItem.appendChild(feedback);
+                container.appendChild(exerciseItem);
+            });
+        };
+
+        const checkDragAndDropAnswer = (index) => {
+            const q = simplerDragDropQuestions[index];
+            const dropZone = document.getElementById(`drop-zone-${index}`);
+            const feedback = document.getElementById(`drag-drop-feedback-${index}`);
+            let userAnswer = q.sentenceParts.map(part => {
+                if (part === '___') {
+                    return dropZone.textContent;
+                }
+                return part;
+            }).join(' ');
+
+            userAnswer = userAnswer.replace(/\s+/g, ' ').trim();
+            
+            if (userAnswer.toLowerCase() === q.correctSentence.toLowerCase()) {
+                feedback.textContent = texts[currentLang]['reorderCorrect'];
+                feedback.className = "mt-2 text-sm font-medium correct";
+                dropZone.classList.add('pointer-events-none');
+            } else {
+                feedback.textContent = `${texts[currentLang]['reorderIncorrect']} ${q.correctSentence}`;
+                feedback.className = "mt-2 text-sm font-medium incorrect";
+                dropZone.classList.add('animate-shake');
+                 setTimeout(() => {
+                    dropZone.classList.remove('animate-shake');
+                }, 500);
+            }
+        };
+
+        const resetDragAndDropExercise = (index) => {
+            const q = simplerDragDropQuestions[index];
+            const dropZone = document.getElementById(`drop-zone-${index}`);
+            const wordsContainer = document.querySelector(`#drag-drop-exercise-container > div:nth-child(${index + 1}) .flex-wrap.gap-2`);
+            const feedback = document.getElementById(`drag-drop-feedback-${index}`);
+
+            while (dropZone.firstChild) {
+                const word = dropZone.firstChild;
+                word.classList.remove('bg-yellow-400', 'text-gray-900');
+                word.classList.add('bg-gray-600', 'hover:bg-gray-500');
+                wordsContainer.appendChild(word);
+            }
+            feedback.textContent = '';
+            dropZone.classList.remove('pointer-events-none');
+        };
+
+        const checkSingleReorderAnswer = (index) => {
+            const q = reorderQuestions[index];
+            const input = document.getElementById(`q-${index}`);
+            const feedback = document.getElementById(`feedback-${index}`);
+            const userAnswer = input.value.trim().replace(/\s+/g, ' ').toLowerCase();
+            const correctAnswer = q.answer.trim().replace(/\s+/g, ' ').toLowerCase();
+
+            if (userAnswer === correctAnswer) {
+                feedback.textContent = texts[currentLang]['reorderCorrect'];
+                feedback.className = "mt-2 text-sm font-medium correct";
+            } else {
+                feedback.textContent = `${texts[currentLang]['reorderIncorrect']} ${q.answer}`;
+                feedback.className = "mt-2 text-sm font-medium incorrect";
+            }
+        };
+
+        const checkSingleRequestAnswer = (index) => {
+            const q = requestQuestions[index];
+            const input = document.getElementById(`req-q-${index}`);
+            const feedback = document.getElementById(`req-feedback-${index}`);
+            const userAnswer = input.value.trim().replace(/\s+/g, ' ').toLowerCase();
+            const correctAnswer = q.answer.trim().replace(/\s+/g, ' ').toLowerCase();
+
+            if (userAnswer === correctAnswer) {
+                feedback.textContent = texts[currentLang]['reorderCorrect'];
+                feedback.className = "mt-2 text-sm font-medium correct";
+            } else {
+                feedback.textContent = `${texts[currentLang]['reorderIncorrect']} ${q.answer}`;
+                feedback.className = "mt-2 text-sm font-medium incorrect";
+            }
+        };
+
+        const resetReorderExercise = () => {
+            reorderQuestions.forEach((q, index) => {
+                document.getElementById(`q-${index}`).value = '';
+                const feedback = document.getElementById(`feedback-${index}`);
+                feedback.textContent = '';
+            });
+        };
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                switchTab(tab.dataset.tab);
+            });
+        });
+
+        document.querySelectorAll('.reveal-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const answer = button.nextElementSibling;
+                if (answer.style.display === 'block') {
+                    answer.style.display = 'none';
+                } else {
+                    answer.style.display = 'block';
+                }
+            });
+        });
+
+        document.getElementById('language-toggle').addEventListener('click', (e) => {
+            currentLang = e.target.dataset.lang;
+            updateLanguage(currentLang);
+            // Re-render exercises to update button texts
+            renderReorderExercise();
+            renderRequestExercise();
+            renderDragAndDropExercise();
+        });
+
+        document.body.addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('check-reorder-single-btn')) {
+                const index = e.target.dataset.index;
+                checkSingleReorderAnswer(index);
+            } else if (e.target && e.target.id === 'reset-btn') {
+                resetReorderExercise();
+            } else if (e.target && e.target.classList.contains('check-request-single-btn')) {
+                const index = e.target.dataset.index;
+                checkSingleRequestAnswer(index);
+            } else if (e.target && e.target.classList.contains('drag-drop-check-btn')) {
+                const index = e.target.dataset.index;
+                checkDragAndDropAnswer(index);
+            } else if (e.target && e.target.classList.contains('drag-drop-reset-btn')) {
+                const index = e.target.dataset.index;
+                resetDragAndDropExercise(index);
+            }
+        });
+
+        // Initialize
+        updateLanguage(currentLang);
+        switchTab('requests');
+    </script>
+</body>
+</html>
